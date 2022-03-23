@@ -155,3 +155,153 @@ There is a big difference between estimates provided by First difference method 
 Verify that pre-treatment trends are parallel for a reasonable timeframe
 Cross validate results using alternative control or treatment groups
 Test if there exists a treatment reversal effect
+
+-------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------- 
+
+## Causal Impact
+
+The motivation to use Causal Impact methodology is that the Difference in differences in limited in the following ways:
+
+  * DiD is traditionally based on a static regression model that assumes independent and identically distributed data despite the fact that the design has a temporal component
+  * Most DiD analyses only consider two time points: before and after the intervention. In practice, we also have to consider the manner in which an effect evolves over time, especially its onset and decay structure
+
+The idea here is to use the trend in the control group to forecast the trend in the treated group which would be the trend if the treatment had not happened. Then the actual causal estimate would be the **difference in the actual trend vs the counter-factual trend of the treated group that we predicted**.
+
+Essentially, Causal Impact methodology is very close to the Synthetic control methodology.
+
+Control region in this case is considered to be Cataluna again. With the treated and control region's GDP in place, let's feed them to the Causal Impact function in R and look at the results.
+
+```{r echo=FALSE, include=TRUE}
+# Causal Impact
+basq_CI <- basq_clean %>%
+  filter(regionname %in% c("Basque Country (Pais Vasco)", "Cataluna")) %>%
+  mutate(date = as.Date(paste0(year, "-01", "-01"), format = "%Y-%m-%d")) %>% 
+  dplyr::select(date, regionname, gdpcap) %>%
+  spread(regionname, gdpcap)
+names(basq_CI) <- c("date", "Basque", "another")
+pre.period <- as.Date(c("1955-01-01", "1975-01-01"))
+post.period <- as.Date(c("1976-01-01", "1997-01-01"))
+impact <- CausalImpact(basq_CI, pre.period, post.period)
+summary(impact)
+
+```
+```{r echo=FALSE, include=TRUE}
+# basq_CI <- basq_clean %>%
+#   filter(regionname %in% c("Basque Country (Pais Vasco)", "Cataluna")) %>%
+#   mutate(date = as.Date(paste0(year, "-01", "-01"), format = "%Y-%m-%d")) %>% 
+#   dplyr::select(date, regionname, gdpcap) %>%
+#   spread(regionname, gdpcap)
+# names(basq_CI) <- c("date", "Basque", "another")
+# pre.period <- as.Date(c("1955-01-01", "1975-01-01"))
+# post.period <- as.Date(c("1976-01-01", "1997-01-01"))
+# impact <- CausalImpact(basq_CI, pre.period, post.period)
+
+impact$report
+
+```
+
+The Absolute effect is the difference in GDP per capita between what the actual GDP was after the treatment and what the GDP would have been if the treatment had not occurred. From the results, we can see the absolute effect gives us a value of -0.76 which means that the GDP per capita reduced by 0.76 units i.e. 8.8% because of the terrorist conflict that happened in Basque country.  
+
+-------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------- 
+
+## Synthetic Control:
+
+Both the methods use the help of control groups to construct a counter-factual of the treated group giving us as idea of what the trend is if the treatment had not happened. The counter-factual GDP of the treated group would be predicted by the GDP of the control groups and also other possible covariates in the control group.
+
+The **synth algorithm** predicts the counter-factual by **assigning weights to the regressors in the control groups** which is helpful in identifying individual regressors and their influence in prediction. Ultimately, the true causal impact is the **difference in GDP between actual GDP and the counter-factual GDP if the treatment had not happened**. 
+
+**Synthetic Control uses only pre-treatment variables** for matching while **Causal Impact uses the full pre and post-treatment time series of predictor variables** for matching.
+
+
+```{r echo=FALSE, include=T}
+basq_synth <- basq_clean %>%
+  rename(Y = gdpcap) %>%
+  mutate(regionname = as.character(regionname))
+ggplot(basq_synth, aes(x=year,y=Y,group=regionno)) +
+  geom_line(aes(color=as.factor(treat), size=as.factor(treat))) + 
+  geom_vline(xintercept=1975,linetype="dashed", color = "steelblue") + theme_classic() + 
+  labs(title="GDP trend over years for all regions", 
+       y="GDP per capita",x="Years", color = "Treatment group") +
+  scale_color_manual(labels = c("Control", "Treated"), values = c("#F8766D", "#00BFC4")) +
+  scale_size_manual(values = c(0.5,1.5), guide = 'none')
+```
+
+
+As seen from the plot above, all the control regions have a similar upward trend in GDP as Basque country's in the pre-period. This suggests that GDP in Basque could be constructed fairly accurately using the data from other regions.
+
+
+
+```{r message=FALSE, warning=TRUE, include=T, echo=FALSE}
+# synth
+dataprep.out <-
+  dataprep(
+  foo = basque
+  ,predictors= c("school.illit",
+                 "school.prim",
+                 "school.med",
+                 "school.high",
+                 "school.post.high"
+                 ,"invest"
+                 )
+   ,predictors.op = c("mean")
+   ,dependent     = c("gdpcap")
+   ,unit.variable = c("regionno")
+   ,time.variable = c("year")
+   ,special.predictors = list(
+    list("gdpcap",1960:1969,c("mean")),                            
+    list("sec.agriculture",seq(1961,1969,2),c("mean")),
+    list("sec.energy",seq(1961,1969,2),c("mean")),
+    list("sec.industry",seq(1961,1969,2),c("mean")),
+    list("sec.construction",seq(1961,1969,2),c("mean")),
+    list("sec.services.venta",seq(1961,1969,2),c("mean")),
+    list("sec.services.nonventa",seq(1961,1969,2),c("mean")),
+    list("popdens",1969,c("mean")))
+    ,treatment.identifier  = 17
+    ,controls.identifier   = c(2:16,18)
+    ,time.predictors.prior = c(1964:1969)
+    ,time.optimize.ssr     = c(1960:1969)
+    ,unit.names.variable   = c("regionname")
+    ,time.plot            = c(1955:1997) 
+    )
+synth.out = synth(dataprep.out)
+```
+
+After execution, Let's look at the plot between actual GDP and the counter-factual GDP. 
+
+``` {r echo=FALSE, include=T}
+# Two native plotting functions.
+# Path.plot() plots the synthetic against the actual treated unit data.
+path.plot(dataprep.res = dataprep.out, synth.res = synth.out,Xlab="Year",Ylab="GDP Per Capita")
+abline(v=1975,lty=2,col="steelblue")
+title("Actual vs Synthetic GDP for Basque")
+# Gaps.plot() shows the deviation between the synthetic and the actual over time.
+#gaps.plot(dataprep.res = dataprep.out, synth.res = synth.out,Xlab="Year",Ylab="Diff in GDP Per Capita")
+#abline(v=1975,lty=2,col="red")
+```
+
+The path-graph shows how the smooth relationship is between the synthetic and actual trend in the pre-period and how it deviates gradually once the treatment happens. That difference in trends in the post-period would be our average treatment effect.
+
+The root mean squared error of the Actual and Synthetic trends can be seen to be **0.57 units**.
+
+```{r include=T}
+# Calculating root mean squared error between actual and synthetic
+round(sqrt(mean((dataprep.out$Y1plot - (dataprep.out$Y0plot %*% synth.out$solution.w))^2)), 2)
+```
+
+We can conclude that the true causal impact of terrorist conflict on Basque country is reduction of GDP by 0.57 units calculated using Synthetic control method.
+
+Comparing results from all 3 methods:
+
+```{r echo=FALSE}
+labels <- c("DiD", "Causal Impact", "Synthetic Control")
+values <- c(-0.85, -0.76, -0.57)
+values_df <- data.frame(labels,values)
+names(values_df) <- c("Method", "Change in GDP per captia")
+kable(values_df)
+```
+
+
+The magnitude of the causal impact differs only by a small margin between the three methods and there is no method which will give us the "correct answer". Most times, the approaches we use will be restricted by the nature of the experiment and what causal threats we are trying to address. 
+
