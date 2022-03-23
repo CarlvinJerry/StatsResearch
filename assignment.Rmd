@@ -1,0 +1,109 @@
+---
+title: "ASSIGNMENT"
+author: "author"
+date: "12/2/2021"
+output:
+  word_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+### Question 1
+1. A hormone level in humans is believed to be a chi-square distribution. A patient data
+sample indicates that the variance of the hormone level is 4. What is the standard
+deviation of the median hormone level in humans? In what proportion of humans is the
+hormone level less than 1? In what proportion of humans is the hormone level between
+1.5 and 3?  
+
+### Answer a:  
+```{r}
+variance <- 4
+std.dev <- 2
+
+##std.dev = 2* degrees of freedom 
+degres_of_freedom = std.dev/2
+  
+pchisq(1,degres_of_freedom)
+```
+The standard deviation of the median hormone level is 2.
+68% of the humans have a hormone level less than 1.  
+
+### Answer b:  
+```{r}
+# P(1.5 < x < 3) = P(x < 3) - P(x < 1.5) 
+pchisq(3,2) - pchisq(1.5,2)
+```
+
+25% of the humans have a hormone level between
+1.5 and 3.    
+
+<br>
+
+### Question 2
+2. Approximate the distribution of the hormone-level in Question 1 above with a log-normal
+distribution. What are your new answers to the 3 questions asked in Question 1?  
+
+### Answer:
+```{r}
+dlnorm(1,meanlog=0, sdlog=1)
+
+plnorm(3,0,1) - plnorm(1.5,0,1)
+```
+40% of the humans have a hormone level less than 1 while 21% of the humans have a hormone level between
+1.5 and 3.  
+
+<br>
+
+### Question 3  
+3. The data below is on vitamin D levels for several patients. A physician wants to know the
+standard deviations of the mean and median vitamin D levels. What would you tell her?
+17 25 17 33 24 15 18 19 14 23 19 23 25 27 21 26 20  
+
+### Answer:
+```{r}
+VitaminData = c(17,25,17,33,24,15,18,19,14,23,19,23,25,27,21,26,20)
+sd(VitaminData)
+sv  <- sd(VitaminData)/sqrt(length(VitaminData)) 
+sv
+```
+The mean and median vitamin D levels are not equal.  
+
+<br> 
+
+### Question 4
+4. Find the “best” Linear Regression model that explains Y in the following dataset:
+LassoRR_sysm590_4K5K70pct.csv. That is, recognize, but ignore multicollinearity and
+do the usual things to find a Linear Regression model. 
+
+```{r}
+library(readr)
+lassoData <- read_csv("LassoRR_sysm590_4K5K70pct.csv")
+##colnames(lassoData)
+
+cor(lassoData)
+##Evidence of multicoliniarity given the high correlation among the x variables 
+regresults <-  lm(Y ~ . ,lassoData)
+summary(regresults)
+```
+
+From the correlation numbers above, we can see that there is existence of multicolinearity. The best linear regression model that explains Y can be seen at X32 intercept since it has the least significant value.  
+
+<br>
+
+### Question 5
+5. Now, without ignoring multicollinearity for the dataset given you in Question 3, find the
+“best” model using Ridge Regression.
+
+```{r}
+##Ridge regression
+#Automatically does the ridge regression selecting the best lambda parameter
+library(ridge)
+mod<-linearRidge(Y ~.,data=lassoData,lambda="automatic"); 
+summary(mod)
+
+```
+
+
