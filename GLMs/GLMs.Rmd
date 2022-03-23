@@ -1,0 +1,789 @@
+---
+title: "GENERALIZED LINEAR MODELS"
+output:
+  html_document:
+    df_print: paged
+---
+
+
+**Generalized Linear Models** are an extension of the the general linear model that mainly deal with **ordinal** and **categorical** response variables.
+
+<br>
+
+
+Linear models pose two major challenges when fitting them to data in that:  
+
+  1. They ignore any interdependencies the variables may have
+  2. Assume the response variable is normally distributed, has a constant variance, and that all predictors are entered additively.
+  
+  <br>
+  
+
+#### **Generalized Linear Model:**
+***
+$$ g(µi) = β0 + β1xi1 + β2xi2 + · · ·
+yi ∼ f(µi) $$ , ***Where*** **g** is a link function, such as the log or logit link and 
+**f** is a probability distribution such as the binomial or Poisson.
+
+The GLM model can alternatively be written as  
+    $$ µi = g^-1
+(β0 + β1xi1 + β2xi2 + · · ·)
+yi ∼ f(µi)
+$$ 
+
+or $$ g(µi) = Xβ
+yi ∼ f(µi)
+$$
+
+
+
+GLMs have three main components:  
+-Random Component  
+-Systematic component  
+-Link function  
+
+<br>
+
+##### **The Random Component:**
+***
+ The random component refers to the probability distribution of our response variable **Y**  
+ 
+ **Case 1:** (Y1,Y2,....,Yn) might be normal. In this case, we would say the random component is the normal distribution. This component leads to ordinanry regression and **ANOVA** models.    
+ 
+ **Case 2:** If the observations are Bernoulli random variables (Here we have valuse as 0 or 1), the we would say the link function is a binomial distribution. When the random component is the binomial distribution, we are commonly concerned with logistic regression or probit models.  
+ 
+ **Case 3:** Quite often, the random variables Y1,Y2,....,Yn have a poison distribution. Then we will be involved with poisson regression or loglinear models.  
+ 
+ <br>
+ 
+##### **The Systemic Component:**  
+***
+
+The systemic component involves the explanatory variables X1,X2,...,Xk as our linear predictors: $$ β0 + β1X1 + β2X2 + · · ·βkXk$$  
+ <br>
+
+##### **The Link Function:**  
+***
+
+The third component of a GLM is the link between the random and systematic components. It explains how the mean $$ μ=E(Y)$$ relates to the explanatory variables in the linear predictor through specifying a function $$g(μ)$$ hence $$ g(µi) = β0 + β1xi1 + β2xi2 + · · ·
+yi ∼ f(µi) $$  
+
+ <br>
+
+>An inverse link function (g−1) transforms values from the (−∞, ∞) scale to the scale of interest, such as (0, 1) for probabilities. The link function (g) does the reverse.  
+
+ <br>
+![](P:/Personalprojects/Research Tests/Images/links.png)
+
+##### Logit Link Example:  
+
+```{r logitexample}
+beta0 <- 5
+beta1 <- -0.08
+elevation <- 100
+(logit.p <- beta0+beta1*elevation)
+```
+
+The resulting value can be converted into a probability by getting its inverse link.  
+
+```{r}
+p <- exp(logit.p)/(1+exp(logit.p))
+p
+
+```
+ To revert to the link function iself:
+ 
+```{r}
+log(p/(1-p))
+```
+ 
+```{r}
+plot(function(x) 5 + -0.08*x, from=0, to=100,
+xlab="Elevation", ylab="logit(prob of occurrence)")
+
+plot(function(x) plogis(5 + -0.08*x), from=0, to=100,
+xlab="Elevation", ylab="Probability of occurrence")
+
+```
+<br>
+<br>
+
+#### **Linear Model:** 
+***
+
+
+$$ µi = β0 + β1xi1 + β2xi2 + · · ·
+yi ∼ Normal(µi
+, σ2
+)
+$$
+Assume that $$ Yi∼N(μi,σ2) $$  (the Gaussian distribution is an exponential family distribution.), we can define the linearb predictor for our linear model to be $$ ηi=∑pk=1 Xikβk.$$
+
+The link function as **g** so that **g(μ)=η**. This function links the mean of the Y’s to the linear predictor. Therefore, for linear models $$g(μ)=μ$$ so that $$μi=ηi$$.
+
+This yields the same likelihood model as our additive error Gaussian linear model
+
+![](P:/Personalprojects/Research Tests/Images/Capture.png)
+
+
+<br>
+<br>
+
+#### **Logistic Regression**
+***
+Assume that our outcome is Bernoulli, $$Yi∼Bernoulli(μi)$$ so that $$E[Yi]=μi where 0≤μi≤1.$$. We define linear predictor $$ηi=∑pk=1Xikβk$$. It looks like our regression model.  
+The link function that links the mean of the Y’s to the linear predictor is $$g(μ)=η=log(μ/1−μ)$$ . **g** is the (natural) log odds, referred to as the **logit**.
+
+Note then we can invert the logit function as ![](P:/Personalprojects/Research Tests/Images/logit.png)  
+Thus (according to the Bernoulli liklihood) the likelihood for all of the muus is ![](P:/Personalprojects/Research Tests/Images/logit2.png)  
+
+<br>
+<br>
+
+#### **Poisson Regression**
+***
+
+Assume that $$Yi∼Poisson(μi)$$ so that $$E[Yi]=μi$$ where $$0≤μi$$. We define linear predictor $$ηi=∑pk=1Xikβk$$. And the link function $$g(μ)=η=log(μ)$$. Recall that $$e^x$$ is the inverse of ***log(x)*** so that $$μi=e^ηi$$, thus the likelihood is ![](P:/Personalprojects/Research Tests/Images/pois.png) 
+
+<br> <br>
+
+#### **Variances and quasi likelihood.**
+***
+One thing to note is that for all the above cases, the only way in which the likelihood depends on the data is through ![](P:/Personalprojects/Research Tests/Images/likelihoods.png). Thus if we don’t actually need the full data, but only ![](P:/Personalprojects/Research Tests/Images/only.png), we have to choose the link functions. Failure to choose the link functions would make it hard for us to achieve this simplification.  
+
+This however has to be derived. All models achieve their maximum at the root of the normal equations, which is basically the solution of this equation: ![](P:/Personalprojects/Research Tests/Images/only.png)
+
+
+
+For the linear model $$Var(Yi)=σ2$$ is constant.
+
+For Bernoulli case $$Var(Yi)=μi(1−μi)$$
+
+For the Poisson case $$Var(Yi)=μi.$$
+
+In the latter cases, it is often relevant to have a more flexible variance model, even if it doesn’t correspond to an actual likelihood
+![](P:/Personalprojects/Research Tests/Images/later.png). where ***Wi*** are the derivatives of the inverse of the link function. These are called **quasi-likelihood** normal equations .
+
+>The whole point is to relax these strict assumption relating the means and the variances in those two models. And it simply fits the standard normal equations, but throws an extra parameter down there in the denominator. They inherit most of the properties that glm’s do but without corresponding to a specific model.
+
+![](P:/Personalprojects/Research Tests/Images/these.png)
+
+***
+***
+
+#### **GLMs: Binary Outcomes.**
+***
+
+#### Example:
+Safaricom stock price data,2015-2020
+
+```{r}
+library(knitr)
+library(printr)
+safcom <- read.csv("./safcom.csv")
+kable(head(safcom,10),align = 'c')
+```
+<br>
+<br>
+
+#### **Linear Regression:** 
+***
+Fitting a linear regression model here would work fairly good. The additive error term however makes it that our outcome isn't a 0 or a 1, if the error is continuous.  $$ SPi=b0 + b1IVi+ei $$  
+
+*SPi* - 1 if we make profit, 0 if not  
+
+*IVi* - Number of points Ravens scored  
+
+*b0* - probability of a profit if the market is at zero.
+
+*b1* - increase in probability of a profit for each additional value in the index.  
+
+*ei* - residual variation due  
+
+```{r, regression linear}
+lmSaf <- lm(safcom$Result ~ safcom$Value)
+summary(lmSaf)
+
+
+
+```
+
+The above case aids in predicting the profit within a thresh held linear regression model. A predictive model however would need more than that, hence the need for interpretation. From a machine learning perspective, depending on the loss function a linear regression might be perfectly reasonable for binary outcomes. But, for interoperability, you want something different, so we re-frame the model in a particularly interpretable way using odds.  
+
+<br>
+<br>
+
+
+#### **Odds:** 
+***
+
+#### **Binary Outcome 0/1**
+$$ SPi $$  
+**Probability (0,1) :** We could talk about the probability that we made profit, given the parameters and the index , what was the index value:    $$Pr(SPi|IVi,b0,b1)$$  
+
+
+**Odds (0,∞) :** The odds are the probability over one minus the probability:     $$ Pr(SPi|IVi,b0,b1)/(1-Pr(SPi|IVi,b0,b1)) $$  
+
+**Log odds (−∞,∞) : ** The log odds*(Logit)*   $$ log(Pr(SPi|IVi,b0,b1)/(1-Pr(SPi|IVi,b0,b1))) $$   
+
+
+<br>
+<br>
+
+#### **Linear vs. logistic regression:** 
+***
+
+So the Linear regression models this
+
+$$SPi=b0+b1IVi+ei$$ or $$E[SPi|IVi,b0,b1]=b0+b1IVi$$  
+
+and Logistic regression models $$Pr(SPi|IVi,b0,b1)=exp(b0+b1IVi)/1+exp(b0+b1IVi)$$ or $$log(Pr(SPi|IVi,b0,b1)/1−Pr(SPi|IVi,b0,b1))=b0+b1IVi$$  
+
+<br>
+<br>
+
+#### **Interpreting Logistic Regression**
+***
+Rewriting the logistic regression equation gives us:
+
+$$log(Pr(SPi|IVi,b0,b1)/1−Pr(SPi|IVi,b0,b1))=b0+b1IVi$$  
+And the interpretations would be:  
+**b0**  - Log odds of a SafProfit if the market was at zero.
+
+**b1** - Log odds ratio of profit probability for each index value accrued (compared to zero value). ( if we had other covariates, we’d have to add the phrase with all the covariates held fixed.)
+
+**exp(b1)** - Odds ratio of profit probability for each index value accrued (compared to zero value)  
+
+
+<br>
+<br>
+
+#### **Interpreting Odds**
+***
+
+Just like probabilities, we can easily interpret odds. Using a gambling scenario:  
+Imagine that you are playing a game where you flip a coin with success probability *p*. If it comes up heads, you win *X*. If it comes up tails, you lose *Y*. What should we set *X* and *Y* for the game to be fair? By fair we mean :
+
+$$E[earnings]=Xp−Y(1−p)=0$$
+
+The opponent's expected earning would be the negative of *E[earnings]*. Implying that $$Y/X=p/(1−p)$$  we can explore the equation further:  
+
+The odds can be said as *“How much should you be willing to pay for a p probability of winning a dollar?”*
+
+> (If p>0.5 you have to pay more if you lose than you get if you win.) It means for the game to be fair, if you have a very high likelihood of winning, you should have to pay out a lot. Your opponent has a very low likelihood of winning so you should have to pay out more. So y is going to have to be bigger.
+
+>(If p<0.5 you have to pay less if you lose than you get if you win.) If p is smaller than 0.5, then you’re going to get more. If you’re betting on something that’s really a long shot, if you’re betting on something that has a very low probability of happening then you should win more that the person who has a much more sure bet.  
+
+
+#### **Safcom logistic regression**
+***
+
+So, let’s look at our logistic regression for the Safcom data here and how we fit it. In the code bellow, the family equals binomial says that it’s going to be logistic progression
+
+```{r}
+logSaf <- glm(safcom$Result ~ safcom$NSE ,family="binomial")
+summary(logSaf)
+
+
+```
+So `14.35546` is the log odds of making profit, when the market is at zero. If we wanted the actual odds of making profit, we do` exp(14.35546)`. And `-0.09945` is the increase in the log odds per every value the market accrues. And if we had included other variables down here that interpretation would be holding these other variables constant.  
+
+#### **Fitted Values**
+***
+```{r}
+plot(safcom$NSE,logSaf$fitted,pch=19,col="red",
+     xlab="Index Value",ylab="Prob Safcom Profit")  
+```
+
+<br>
+<br>
+
+#### **Odds ratios and confidence intervals**
+***
+
+We can exponentiate the confidence interval and then get the upper and lower bounds:
+
+```{r}
+exp(logSaf$coeff)
+```
+```{r}
+exp(confint(logSaf))
+```
+
+<br>
+<br>
+
+#### **ANOVA for logistic regression**
+***
+There are tests suitable for binomial data, but for the cases where we have 2 or more predictor variables we can also run an ANOVA using the output from a generalized linear model
+referencing logistic regression and the binomial distribution.A logistic regression works just like a simple or multiple linear regression. It is capable of handling
+continuous or categorical independent variables (predictors). To run a binomial ANOVA you must
+build your logistic model which is a bit more robust than the linear model.  
+
+We can fit the ANOVA to our logistic regression output. However unlike the parametric option, here we must specify that we want to calculate p-values using a chi-squared test and chisquared distribution rather than the F-distribution (default) which is reserved for parametric statistics.  
+
+The output from this ANOVA is similar to the parametric option, however rather than the sum-of-squares and means sum-of-squares displayed, now we have the resulting deviance from each of the
+parameters. 
+
+>Deviance is a measure of the lack of fit between the model and the data with
+larger values indicating poorer fit.
+
+```{r}
+anova(logSaf,test="Chisq")
+```
+
+In this case the chance of getting a chi-squared with `4.7` and with `1 degree of freedom` is pretty far out in the tail. There’s only `3% chance` of getting one more extreme. (P(X>4.7)=0.03)  
+
+ ***
+
+<br>
+***
+<br>
+
+### **COUNT OUTCOMES**
+***
+
+Many data will take the form of counts and therefore we can’t necessarily model counts in the same way that we model other data with linear regression or binary regression. Examples are:    
+  1. Calls to a call center  
+  2. Number of flu cases in an area  
+  3 .Number of trades in a day    
+  
+Data may also take the form of rates such as count per unit time.  
+
+Percentages also that seem like binomial processes can be modeled by Poisson models especially when the probability is very low and the sample size is very large. For example:  
+
+ 1. Percent of children passing a test.    
+ 2. Percent of hits to a website from a given location.  
+ 
+In these cases linear regression with transformation is an option.
+ 
+ <br>
+ <br>
+ 
+#### **Poisson Distribution**
+***
+The Poisson is an unbounded count distribution (0, 1, 2, …)  useful for **Counts** and **rates**. Some example uses of the poisson distribution are:  
+
+  1. Incidence rates
+  2. Approximating binomial probabilities with small p and large n
+  3. Analyzing contigency table data.
+ 
+<br>
+```{r}
+set.seed(1805)
+plot(density(rpois(1000, 16)), col='purple', xlim=c(-1, 30), ylim=c(0, .65),
+     main='Poisson Distributions')
+lines(density(rpois(1000, 8)), col='green')
+lines(density(rpois(1000, 4)), col='blue')
+lines(density(rpois(1000, 2)), col='red')
+lines(density(rpois(1000, 1)))
+```
+ 
+<br>
+<br> 
+ 
+#### **The Poisson mass function**
+***
+
+We say random variable $X∼Poisson(tλ)$ if ![](P:/Personalprojects/Research Tests/Images/pois.png) 
+
+The mean of the Poisson is $E[X]=tλ$, thus $E[X/t]=λ$  
+
+The variance of the Poisson is $Var(X)=tλ$.  
+
+The Poisson tends to a normal as $tλ$ gets large, as shown in the code below:
+
+```{r poisson}
+par(mfrow = c(1, 3))
+plot(0 : 10, dpois(0 : 10, lambda = 2), type = "h", frame = FALSE)
+plot(0 : 20, dpois(0 : 20, lambda = 10), type = "h", frame = FALSE)
+plot(0 : 200, dpois(0 : 200, lambda = 100), type = "h", frame = FALSE) 
+```
+
+<br>
+
+Poisson processes assume the variance of the response variable equals its mean. “Equals” means the mean and variance are of a similar order of magnitude. If that assumption does not hold,we use the quasi-poisson. 
+
+Mean and variance example:
+```{r}
+x <- 0 : 10000; lambda = 3
+mu <- sum(x * dpois(x, lambda = lambda))
+sigmasq <- sum((x - mu)^2 * dpois(x, lambda = lambda))
+c(mu, sigmasq)
+```
+
+<br>
+
+#### **Using the poisson distribution**
+***
+
+The Poisson Distribution is only a valid probability analysis tool under certain conditions. It is a valid statistical model if all the following conditions are true:  
+
+    1. k is the number of times an event happens within a specified time period, and the possible values for k are simple numbers such as 0, 1, 2, 3, 4, 5, etc.  
+    
+    2. No occurrence of the event being analyzed affects the probability of the event re-occurring (events occur independently).  
+    
+    3. The event in question cannot occur twice at exactly the same time. There must be some interval of time – even if just half a second that separates occurrences of the event.  
+    
+    4. The probability of an event happening within a portion of the total time frame being examined is proportional to the length of that smaller portion of the time frame.  
+    
+    5. The number of trials (chances for the event to occur) is sufficiently greater than the number of times the event does actually occur (in other words, the Poisson Distribution is only designed to be applied to events that occur relatively rarely).   
+  
+  <br>
+  <br>
+  
+  
+#### **Example** 
+Say that, on average, the stock market dips severely 5 times every decade. Calculate the probability of experiencing 2 events of a similar magnitude in the current decade.
+
+Insert the values into the distribution formula: $P(x; μ) = (e^-μ) (μ^x) / x!$  
+
+μ = 5, since five dips is the 10-year average  
+
+x = 2, because we want to solve for the probability of 2 market dips in the current decade  
+
+e = 2.71828  
+```{r}
+ round((2.71828^(-5))*(5^2) / factorial(2),2)
+```
+
+<br>
+
+#### **Formulating the problem** 
+***
+Poisson is often used to model probability of the number of events that occur over a period of time. In such circumstances, $μ=λt$ where $lambda$ is the rate of events per time, and $t$ is the number of units of time.
+
+>In most actual practice, Poisson regression is often turned to for small counts, where larger values become increasingly rare.  
+
+As with all regression, we can state it simply as,$Yi=E(Yi)+ϵi$ that is, a systematic and random component. Suppose we have a matrix of **X** potential predictor variables we would like to explain or predict **E(Yi)**. Assuming a linear and additive model gives us the linear predictor as we saw previously on linear and binary logistic regression:$η=x^(T)β$   
+
+
+We need to link the linear predictor to the dependent variable $Y∼Pois(μ)$, subject to the requirements that all predictions are nonnegative. The canonical function is log, giving us:  $Yi=E(Yi)=μi=exp(ηi)=exp(xTiβ)$  
+ 
+ <br>
+ 
+#### **Parameter Estimation**
+
+With the functional form in place, we need to find the optimal values of β. Maximum likelihood estimation methods will generate the β’s most likely from the data.  
+For a series of β’s, the likelihood is: ![](P:/Personalprojects/Research Tests/Images/likelihood.png)
+where $μ$ is defined in terms of $β$ and X as explained above. I.e., this equation is the likelihood of the given values of $β$ given the data.
+The log-likelihood will then be: ![](P:/Personalprojects/Research Tests/Images/logli.png)  
+Differentiating w.r.t $β$ gives the maximum likelihood estimate of $β^$ as: ![](P:/Personalprojects/Research Tests/Images/mle.png)   
+
+At this point in the derivation, numerical methods (Newton-Raphson method, gradient descent) must be employed as there is no general solution.
+
+<br>
+<br>
+
+#### **Simulating Data**  
+***
+Our simulated dataset will consist of 1000 measures of three variables. X1 will be normally distributed with $μ=0$ and $σ^2=0.5$. X2 will be a balanced dichotomous variable, where each value 0,1 is equally as likely. The final variable X3 is itself Poisson distributed with $μ=0.5$.
+
+```{r}
+n <- 1000
+
+set.seed(1804)
+
+X <- matrix(0, nrow=n, ncol=3)
+X[, 1] <- rnorm(n, mean=0, sd=.5)  # normally distributed IV
+X[, 2] <- sample(0:1, size=n, replace=TRUE, prob=c(0.5, 0.5)) # dichotomous IV (balanced)
+X[, 3] <- rpois(n, lambda=.5)  # Poisson distributed
+```
+
+Set the parameters that govern the relationship between the variables and Y:  
+```{r}
+beta_1 <- log(1.5); beta_2 <- log(4); beta_3 <- log(1.1)
+```
+Use these parameters to create the linear predictor η, and use the log link function to put it all together:
+```{r}
+eta <- beta_1* X[,1] + beta_2*X[,2] + beta_3*X[,3]
+g <- exp(eta)
+y <- rpois(n, g)
+
+df <- data.frame(y=y, x=X)
+```
+
+Graphically, our simulated dataset looks like:
+```{r}
+library(ggplot2)
+library(gridExtra)
+p1 <- ggplot2::ggplot(df, aes(x=x.1, y=y)) + geom_point(alpha=0.33) + geom_smooth()
+p2 <- ggplot2::ggplot(df, aes(x=as.factor(x.2), y=y)) + geom_boxplot()
+p3 <- ggplot2::ggplot(df, aes(x=jitter(x.3), y=y)) + geom_point(alpha=0.33) + geom_smooth()
+ grid.arrange(p1, p2, p3, ncol=3)
+```
+```{r}
+p4 <- ggplot(df, aes(x=x.1, color=1, fill=1)) + geom_density(alpha=0.4, show.legend=FALSE)
+p5 <- ggplot(df, aes(x=x.2, color=1, fill=1)) + geom_bar(show.legend=FALSE)
+p6 <- ggplot(df, aes(x=x.3, color=1, fill=1)) + geom_bar(show.legend=FALSE)
+grid.arrange(p4, p5, p6, ncol=3)
+```
+<br>
+
+<br>
+
+#### **Poisson regression modeling**  
+```{r}
+m <- glm(y ~ x.1 + as.factor(x.2) + x.3, df, family=poisson())
+summary(m)
+
+```
+
+The population parameters,
+```{r}
+c(beta_1, beta_2, beta_3)
+```
+
+are well within the 95 percent confidence intervals for the fitted parameters:
+```{r}
+confint(m)
+```
+```{r}
+coef(m)
+```
+
+Despite the different kinds of independent variables, the model was within reasonable accuracy of each parameter.
+```{r}
+1 - (m$deviance / m$null.deviance)
+```
+
+Proportion of deviance explained is about half, so that’s a good indicator of our model fitness.
+
+***
+
+<br>
+<br>
+
+***
+
+\newpage
+
+### GLMs: RESIDUALS AND DIAGNOSTICS
+
+#### Assumptions
+To accurately capture the phenomena of interest, GLM requires that:  
+
+1. There are no outliers
+2. The link function is correct
+3. All important independent variables are used and each is linear
+4. The correct variance function **V(μ)** is used (since GLMs mean and variance are proportional to each other and not constant)
+5. The dispersion parameter is constant
+6. The response **yi** are independent of each other
+7. The response variable comes from the specified distribution
+
+How can we tell if our fitted GLM is consistent with these assumptions, and fits the data at hand adequately? We can employ the methods enumerated below.  
+
+<br>
+<br>
+
+#### Data Simulation
+Response variable follows a negative binomial distribution.   
+Specify a quadratic relationship.   
+Fit two models: **M0** does not include quadratic term, while **M1** does. I will compare their residuals later.  
+```{r datasim}
+n <- 1000
+
+set.seed(1806)
+
+X <- matrix(0, nrow=n, ncol=3)
+X[, 1] <- rnorm(n, mean=0, sd=.5)  # normally distributed IV
+X[, 2] <- sample(0:1, size=n, replace=TRUE, prob=c(0.5, 0.5)) # dichotomous IV (balanced)
+X[, 3] <- rpois(n, lambda=.5)  # Poisson distributed
+
+beta_1 <- log(2.5); beta_2 <- log(4); beta_3 <- -log(1.4); beta_4 <- log(1.76)
+
+eta <- beta_1*X[,1] + beta_2*X[,2] + beta_3*X[,3] + beta_4*(X[,1]^2)
+g <- exp(eta)
+y <- rnbinom(n, size=g, prob=0.20)
+
+df <- data.frame(y=y, x=X)
+head(df,10)
+```
+
+#### Models
+**Without the quadratic term:**
+```{r nonquad}
+m0 <- MASS::glm.nb(y ~ x.1 + x.2 + x.3, df)
+summary(m0)
+```
+
+**with the quadratic term:**
+```{r quad}
+m1 <- MASS::glm.nb(y ~ poly(x.1, 2) + x.2 + x.3, df)
+summary(m1)
+```
+
+<br>
+<br>
+
+### Residuals
+After a model has been fit, it is wise to check the model to see how well it fits the data.In linear regression, these diagnostics were built around residuals and the residual sum of squares. In logistic regression (and all generalized linear models), there are a few different kinds of residuals (and thus, different equivalents to the residual sum of squares).
+
+Below, the black line shows the residuals of the correct model **M0**, while the red lines show those of the incorrect model **M1**:
+```{r resids}
+plot(density(resid(m0, type='response')))
+lines(density(resid(m1, type='response')), col='red')
+```
+
+<br>
+<br>
+
+#### Pearson Residuals
+The Pearson residual, defined as the raw residual scaled by the estimated standard deviation of the response variable, is the most common measure for goodness of fit. The standardization is useful to ensure the residuals have a constant variance.(it is based on the idea of subtracting off the mean and dividing by the standard deviation).
+For a logistic regression model,  ![](P:/Personalprojects/Research Tests/Images/person.png)
+Note that if we replace πˆi with πi, then ri has mean 0 and variance 1.
+
+```{r pearson}
+plot(density(resid(m0, type='pearson')))
+lines(density(resid(m1, type='pearson')), col='red')
+```
+
+Quite a bit more contained, though with a very long tail.  
+With standardization:
+```{r standardpearson}
+plot(density(rstandard(m0, type='pearson')))
+lines(density(rstandard(m1, type='pearson')), col='red')
+```
+In the case at hand, the standardized residuals do not differ much from the unstandardized.  
+
+<br>
+<br>
+
+#### Deviance Residuals
+The other approach is based on the contribution of each point to the likelihood.
+For logistic regression, ![](P:/Personalprojects/Research Tests/Images/logireg.png)
+By analogy with linear regression, the terms should correspond to −1/2(ri^2) this suggests the following residual, called the deviance residual: ![](P:/Personalprojects/Research Tests/Images/devres.png)
+where **si** = 1 if **yi** = 1 and **si** = −1 if **yi** = 0  
+
+```{r devres}
+plot(density(resid(m0, type='deviance')))
+lines(density(resid(m1, type='deviance')), col='red')
+```
+
+Deviance residuals can also be standardized.
+```{r standevres}
+plot(density(rstandard(m0, type='deviance')))
+lines(density(rstandard(m1, type='deviance')), col='red')
+```
+As before, there is not much of a difference between standardized and unstandardized residuals.  
+
+<br>
+<br>
+
+#### Quantile Residuals
+Quantile residuals are useful for discrete response variables. Their primary benefits are they do not show weird patterns (due to variable’s discreteness). 
+```{r}
+library(statmod)
+plot(density(statmod::qresid(m0)))
+lines(density(statmod::qresid(m1)), col='red')
+```
+
+In this case, the range of the residuals is around the same as the deviance residuals. The distribution, however, is a bit smoother and more closely approximates a normal distribution.  
+
+
+<br>
+<br>
+
+<br>
+<br>
+
+### Diagnostics
+#### 1. Spot checking densities of y and y^
+The predicted values from a model will appear similar to y if the model is well-fit. Below, we see the distributions are about the same for each model.  
+```{r}
+par(mfrow=c(1,2))
+plot(density(df$y), xlim=c(0, 160), ylim=c(0, .08), main='M_0 y_hat')
+lines(density(predict(m0, type='response')), col='red')
+
+plot(density(df$y), xlim=c(0, 160), ylim=c(0, .08), main='M_1 y_hat')
+lines(density(predict(m1, type='response')), col='red')
+```
+
+<br>
+<br>
+
+#### 2. Checking independence of observations  
+This is especially important when dealing with data across time and space, we can also test simply by plotting the residuals in order. Ideally there will be no pattern.
+```{r}
+par(mfrow=c(1,2))
+scatter.smooth(1:1000, rstandard(m0, type='deviance'), col='gray')
+scatter.smooth(1:1000, rstandard(m1, type='deviance'), col='gray')
+```
+
+We can confirm in both cases that the observations are independent.  
+
+<br>
+<br>
+
+#### 3. Plot residuals against fitted values of yi^ 
+In plots of this type, a well fit model will display no pattern. We see on the left that the residuals from **M0** (without quadratic term) increase with **yi^**. This is directly attributable to the missing term. The correct model **M1** has no pattern.
+```{r}
+par(mfrow=c(1,2))
+scatter.smooth(predict(m0, type='response'), rstandard(m0, type='deviance'), col='gray')
+scatter.smooth(predict(m1, type='response'), rstandard(m1, type='deviance'), col='gray')
+```
+
+These plots can be easier to detect by using a variance-stabilizing transformation on **y^**. The most recommended being poisson (and presumably negative binomial) distributions square root. 
+```{r}
+par(mfrow=c(1,2))
+scatter.smooth(sqrt(predict(m0, type='response')), qresid(m0), col='gray')
+scatter.smooth(sqrt(predict(m1, type='response')), qresid(m1), col='gray')
+```
+
+It is easy to see this transformation spreads the points out along the horizontal access. 
+
+<br>
+<br>
+
+#### 4. Checking if choice of distribution for y is appropriate
+Use Q-Q plots with quartile residuals to determine if our chosen distribution—negative binomial—makes sense.
+```{r}
+par(mfrow=c(1,2))
+qqnorm(qresid(m0)); qqline(qresid(m0))
+qqnorm(qresid(m1)); qqline(qresid(m1))
+```
+These look good. There are outliers in both models, but it is worse for **M0** as it fails to account for the quadratic nature of **x1**.  
+
+<br>
+<br>
+
+#### 5. Checking the link function
+Plot the working residuals against the linear predictor. If no pattern is discernable, we can ascertain the correct link function was used.
+![](P:/Personalprojects/Research Tests/Images/dist.png)
+
+Interestingly, both models appear to have slight logarithmic relationship.
+
+<br>
+<br>
+
+#### Outliers and influential observations
+#### Cook's Distance
+Cook's distance ***Di*** of observation *i(for i=1,...,n)* is defined as the sum of all the changes in the regression model when observation i is removed from it.  
+![](P:/Personalprojects/Research Tests/Images/cook.png)
+Cook's distance helps us find observations with high leverage:
+
+```{r}
+par(mfrow=c(1,2))
+plot(cooks.distance(m0), type='h')
+plot(cooks.distance(m1), type='h')
+```
+
+
+The scale of the y-axis is much lower in M1 (on the right) than M0.
+We can further specify the specific points with high leverage using a benchmark of 2 times the mean of Cook’s distance:  
+```{r}
+cooksd_m0 <- cooks.distance(m0)
+cooksd_m1 <- cooks.distance(m1)
+
+length(cooksd_m0[cooksd_m0 > mean(cooksd_m0) * 2])
+```
+```{r}
+length(cooksd_m1[cooksd_m1 > mean(cooksd_m1) * 2])
+```
+M0  appears to have more high leverage points than the correct model M1.
+
+Let’s examine an observation with a high leverage in both models:
+```{r}
+df[73,]
+```
+
