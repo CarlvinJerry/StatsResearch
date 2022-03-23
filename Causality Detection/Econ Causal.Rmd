@@ -1,0 +1,157 @@
+---
+title: "Economic Causality"
+author: "Carlvin M"
+date: "2/06/2022"
+output: html_document
+---
+
+
+```{r setup, include=FALSE}
+  library(forecast)
+  library(ggplot2)
+  library(dplyr)
+  library(tidyr)
+  library(stargazer)
+  library(ggplot2)
+  library(data.table)
+  library(tableone)
+  library(lattice)
+  library(pwr)
+  #library(rcompanion)
+  library(scales)
+  library(plm)
+  library(readxl)
+  library(MatchIt)
+  library(lfe)
+  library(Synth)
+  library(gsynth)
+  library(panelView)
+  library(CausalImpact)
+  library(knitr)
+```
+
+
+
+
+Using the Basque dataset, we'll estimate the economic impact of terrorist conflict in the Basque country, an autonomous community in Spain, with the help of data from 17 other regions as well. The data can be found [here](https://www.rdocumentation.org/packages/Synth/versions/1.1-5/topics/basque). Let's look at some facts about the data and the experimental design.
+  
+## Data Description:
+
+  * Data tenure: 1955 - 1997
+  * Information about 18 Spanish regions is available
+    + One of which is an average for the whole country of Spain (we'll remove that)
+  * The treatment year is considered to be year 1975
+  * The treatment region is "Basque Country (Pais Vasco)"
+  * The economic impact measurement variable is GDP per capita (in thousands)
+
+```{r include=T}
+data(basque)
+head(basque,10)
+colnames(basque)
+```
+
+
+```{r include = T}
+unused <- c("sec.agriculture", "sec.energy" , "sec.industry" , "sec.construction" , 
+           "sec.services.venta" , "sec.services.nonventa", "school.illit", "school.prim", 
+           "school.med", "school.high", "school.post.high", "popdens")
+basq_clean <- basque[,!(names(basque) %in% unused)]
+basq_clean <- basq_clean %>%
+  mutate(post = ifelse(year > 1975, 1, 0),
+         treat = ifelse(regionname == "Basque Country (Pais Vasco)", 1, 0),
+         regionname = as.factor(regionname)) %>%
+  filter(regionno != 1)
+
+head(basq_clean)
+```
+
+
+## First Difference Estimate
+
+Before going into Difference in Differences method, let's look at First Differences and what it does. Our goal here is to quantify the impact of GDP before and after the terrorist conflict in Basque country. 
+
+The general trend of GDP per capita for the Basque country:
+
+```{r message=FALSE, warning=FALSE, include= T}
+# Calculating first differences
+basq_fdid <- basq_clean %>%
+  filter(treat == 1)
+ggplot(basq_fdid, aes(x=year, y=gdpcap)) +
+  geom_line(color = "#F8766D") + theme_classic() +
+  geom_vline(xintercept=1975, color = "steelblue", linetype = "dashed") +
+  labs(title="GDP trend over years for Basque", 
+       y="GDP per capita",x="Years", color = "Region") +
+  annotate("text", x = 1970, y = 9, label = "Pre-period", size  =5, color = "steelblue") +
+  annotate("text", x = 1980, y = 9, label = "Post-period", size  =5, color = "steelblue") 
+```
+
+Our goal is to capture the magnitude of plunge that we see. The first difference estimate will tell us the difference in GDP before and after the treatment. We can derive our first difference equation by having GDP as the dependent variable and pre-post indicator as the independent variable. 
+
+```{r  message=FALSE, warning=FALSE, include = T}
+# Calculating first differences
+f_did <- lm(data = basq_fdid, gdpcap ~ post)
+stargazer(f_did, type="text")
+```
+
+The coefficient of post indicator suggests that there is an increase of GDP per capita by ~2.5 units.
+That's because there's an expected problem as we mentioned earlier. The trend in GDP could have been altered because of a lot of other variables, besides the terrorist conflict, occurring at the same time -confounders. Possible confounders in this case are:
+
+  * Passing of a trade law which would affect local businesses and GDP
+  * Mutiny within local groups 
+  * Perception of corrupt or dysfunctional government
+
+The solution to this is to compare the trend to a control region which was not impacted by terrorist conflict. This comparison allows us to remove the confounding effect after the intervention period and arrive at the real causal impact. That's where Difference in differences come in.
+
+##  Difference in differences (DiD):
+
+***Assumption:*** The treatment group and control group must follow the same trend in the pre-period. 
+
+
+
+```{r  include=T}
+
+# For this analysis, the control region was identified by spotting for the region that had the lowest variation in % difference of GDP across years between each region and Basque country.
+# Alternatively, we can look for the control region by eyeballing the GDP trend for treatment and control groups when feasible. In this case, Cataluna region was recognized to be the best control region. Let's look at the GDP trend for test and control regions below:
+
+#Picking the closest control group based on gdp
+pre <- basq_clean %>%
+  filter(post == 0) %>%
+  left_join(dplyr::select(basq_clean[basq_clean$post==0 & basq_clean$treat == 1, ], gdpcap, year),
+            by = c("year"= 'year')) %>%
+  mutate(perc_diff = (gdpcap.y - gdpcap.x) / gdpcap.y) %>%
+  group_by(regionname) %>%
+  summarise(gdp_var = abs(var(perc_diff))) %>%
+  arrange(gdp_var)
+# Validating assumption
+did_data <- basq_clean %>%
+  filter(regionname %in% c("Basque Country (Pais Vasco)", "Cataluna"))
+ggplot(did_data, aes(x=year, y=gdpcap, group = regionname)) +
+  geom_line(aes(color = regionname)) + 
+  theme_classic() +
+  geom_vline(xintercept=1975, color = "steelblue", linetype = "dashed") +
+  labs(title="GDP trend over years for different regions", 
+       y="GDP per capita",x="Years", color = "Region") +
+  scale_color_manual(labels = c("Basque (treated)", "Cataluna (control)"), values = c("#00BFC4", "#F8766D"))
+```
+
+GDP trend for Cataluna region goes hand in hand with Basque's GDP with an exception for a few years in the pre-period. Thus, there should be no problem in considering Cataluna to be our control region.
+
+We then fit the regression with GDP as the dependent variable and treatment indicator and pre-post indicator as the independent variables. The key aspect here is to feed the interaction between treatment and pre-post indicator as we want the estimate to contain the effect of being treated along with being in post-period in comparison to not being treated and being in pre-period.
+
+After fitting, let's look at the regression results below:
+
+```{r message=FALSE, warning=FALSE, include = T}
+# Difference in differences
+did <- lm(data = did_data, gdpcap ~ treat*post)
+stargazer(did, type="text")
+```
+
+Looking at the estimate of the interaction variable, the model suggests that the GDP in Basque country reduced by 0.855 units because of the terrorist intervention that happened. 
+
+There is a big difference between estimates provided by First difference method and the DD method. Quantitatively, we can see how the First difference estimates could be deceiving to look at. 
+
+
+***
+Verify that pre-treatment trends are parallel for a reasonable timeframe
+Cross validate results using alternative control or treatment groups
+Test if there exists a treatment reversal effect
