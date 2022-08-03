@@ -154,10 +154,12 @@ There is a big difference between estimates provided by First difference method 
 ***
 Verify that pre-treatment trends are parallel for a reasonable timeframe
 Cross validate results using alternative control or treatment groups
-Test if there exists a treatment reversal effect
+Test if there exists a treatment reversal effect  
+
 
 -------------------------------------------------------------------------------------------
 ------------------------------------------------------------------------------------------- 
+
 
 ## Causal Impact
 
@@ -203,8 +205,10 @@ impact$report
 
 The Absolute effect is the difference in GDP per capita between what the actual GDP was after the treatment and what the GDP would have been if the treatment had not occurred. From the results, we can see the absolute effect gives us a value of -0.76 which means that the GDP per capita reduced by 0.76 units i.e. 8.8% because of the terrorist conflict that happened in Basque country.  
 
+
 -------------------------------------------------------------------------------------------
 ------------------------------------------------------------------------------------------- 
+
 
 ## Synthetic Control:
 

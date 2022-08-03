@@ -578,19 +578,19 @@ stargazer(did, type=&quot;text&quot;)</code></pre>
 ##                          Average         Cumulative    
 ## Actual                   7.9             173.1         
 ## Prediction (s.d.)        8.6 (0.32)      190.3 (6.99)  
-## 95% CI                   [8, 9.3]        [176, 204.3]  
+## 95% CI                   [8, 9.3]        [176, 203.7]  
 ##                                                        
 ## Absolute effect (s.d.)   -0.78 (0.32)    -17.22 (6.99) 
-## 95% CI                   [-1.4, -0.16]   [-31.3, -3.42]
+## 95% CI                   [-1.4, -0.14]   [-30.7, -2.98]
 ##                                                        
 ## Relative effect (s.d.)   -9% (3.7%)      -9% (3.7%)    
-## 95% CI                   [-16%, -1.8%]   [-16%, -1.8%] 
+## 95% CI                   [-16%, -1.6%]   [-16%, -1.6%] 
 ## 
-## Posterior tail-area probability p:   0.00802
-## Posterior prob. of a causal effect:  99.1984%
+## Posterior tail-area probability p:   0.00501
+## Posterior prob. of a causal effect:  99.499%
 ## 
 ## For more details, type: summary(impact, &quot;report&quot;)</code></pre>
-<pre><code>## [1] &quot;\n\nDuring the post-intervention period, the response variable had an average value of approx. 7.87. By contrast, in the absence of an intervention, we would have expected an average response of 8.65. The 95% interval of this counterfactual prediction is [8.02, 9.29]. Subtracting this prediction from the observed response yields an estimate of the causal effect the intervention had on the response variable. This effect is -0.78 with a 95% interval of [-1.42, -0.16]. For a discussion of the significance of this effect, see below.\n\nSumming up the individual data points during the post-intervention period (which can only sometimes be meaningfully interpreted), the response variable had an overall value of 173.07. By contrast, had the intervention not taken place, we would have expected a sum of 190.28. The 95% interval of this prediction is [176.49, 204.32].\n\nThe above results are given in terms of absolute numbers. In relative terms, the response variable showed a decrease of -9%. The 95% interval of this percentage is [-16%, -2%].\n\nThis means that the negative effect observed during the intervention period is statistically significant. If the experimenter had expected a positive effect, it is recommended to double-check whether anomalies in the control variables may have caused an overly optimistic expectation of what should have happened in the response variable in the absence of the intervention.\n\nThe probability of obtaining this effect by chance is very small (Bayesian one-sided tail-area probability p = 0.008). This means the causal effect can be considered statistically significant.&quot;</code></pre>
+<pre><code>## [1] &quot;\n\nDuring the post-intervention period, the response variable had an average value of approx. 7.87. By contrast, in the absence of an intervention, we would have expected an average response of 8.65. The 95% interval of this counterfactual prediction is [8.00, 9.26]. Subtracting this prediction from the observed response yields an estimate of the causal effect the intervention had on the response variable. This effect is -0.78 with a 95% interval of [-1.39, -0.14]. For a discussion of the significance of this effect, see below.\n\nSumming up the individual data points during the post-intervention period (which can only sometimes be meaningfully interpreted), the response variable had an overall value of 173.07. By contrast, had the intervention not taken place, we would have expected a sum of 190.28. The 95% interval of this prediction is [176.05, 203.72].\n\nThe above results are given in terms of absolute numbers. In relative terms, the response variable showed a decrease of -9%. The 95% interval of this percentage is [-16%, -2%].\n\nThis means that the negative effect observed during the intervention period is statistically significant. If the experimenter had expected a positive effect, it is recommended to double-check whether anomalies in the control variables may have caused an overly optimistic expectation of what should have happened in the response variable in the absence of the intervention.\n\nThe probability of obtaining this effect by chance is very small (Bayesian one-sided tail-area probability p = 0.005). This means the causal effect can be considered statistically significant.&quot;</code></pre>
 <p>The Absolute effect is the difference in GDP per capita between what the actual GDP was after the treatment and what the GDP would have been if the treatment had not occurred. From the results, we can see the absolute effect gives us a value of -0.76 which means that the GDP per capita reduced by 0.76 units i.e. 8.8% because of the terrorist conflict that happened in Basque country.</p>
 </div>
 <div id="section-1" class="section level2">
